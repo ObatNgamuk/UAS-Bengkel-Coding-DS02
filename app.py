@@ -97,30 +97,33 @@ with col1:
     st.info(f"**Pembayaran:** {raw_payment}")
 
 with col2:
-    st.subheader("Prediksi")
-    if st.button('Mulai Prediksi'):
-        try:
-            # A. Scaling
-            num_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
-            input_df[num_cols] = scaler.transform(input_df[num_cols])
-            
-            # B. Reorder Columns (Wajib)
-            if hasattr(model, 'feature_names_in_'):
-                input_df = input_df[model.feature_names_in_]
-            
-            # C. Prediksi
-            prediction = model.predict(input_df)
-            probability = model.predict_proba(input_df)
-            churn_prob = probability[0][1] * 100 # Ambil probabilitas kelas 1 (Churn)
-            
-            # Tampilkan Hasil dengan Gauge/Persentase
-            st.metric("Risiko Churn", f"{churn_prob:.2f}%")
-            
-            if prediction[0] == 1:
-                st.error('⚠️ PREDIKSI: BERPOTENSI CHURN')
-            else:
-                st.success('✅ PREDIKSI: PELANGGAN AMAN')
-                
-        except Exception as e:
-            st.error("Terjadi Kesalahan:")
-            st.text(e)
+            st.subheader("Prediksi")
+            if st.button('Mulai Prediksi'):
+                try:
+                    # A. Scaling
+                    num_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+                    input_df[num_cols] = scaler.transform(input_df[num_cols])
+                    
+                    # B. Reorder Columns
+                    if hasattr(model, 'feature_names_in_'):
+                        input_df = input_df[model.feature_names_in_]
+                    
+                    # C. Prediksi & Probabilitas
+                    prediction = model.predict(input_df)
+                    probability = model.predict_proba(input_df)
+                    churn_prob = probability[0][1] * 100 # Persentase Churn
+                    
+                    # Tampilkan Gauge
+                    st.metric("Risiko Churn", f"{churn_prob:.2f}%")
+                    
+                    # LOGIKA BARU: Jika risiko > 40%, kita anggap BERBAHAYA (Merah)
+                    if churn_prob > 40:
+                        st.error('⚠️ PREDIKSI: BERPOTENSI CHURN')
+                        st.caption("Peringatan: Risiko churn terdeteksi tinggi (>40%). Segera lakukan retensi.")
+                    else:
+                        st.success('✅ PREDIKSI: PELANGGAN AMAN')
+                        st.caption("Pelanggan ini cenderung setia.")
+                        
+                except Exception as e:
+                    st.error("Terjadi Kesalahan:")
+                    st.text(e)
