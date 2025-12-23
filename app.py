@@ -80,19 +80,24 @@ def user_input_features():
         'StreamingMovies_Yes': 0,
     }
     
-    return pd.DataFrame(data, index=[0])
+    # Kembalikan dataframe DAN nilai raw untuk display
+    features = pd.DataFrame(data, index=[0])
+    return features, contract, internet_service, payment_method
 
 # --- 4. Tampilkan Input & Prediksi ---
-input_df = user_input_features()
+input_df, raw_contract, raw_internet, raw_payment = user_input_features()
 
 # Layout Kolom agar rapi
 col1, col2 = st.columns(2)
+
 with col1:
-    st.subheader("Input User")
-    st.write(input_df[['tenure', 'Contract', 'InternetService_Fiber optic', 'PaymentMethod_Electronic check']])
+    st.subheader("Profil Pelanggan")
+    st.info(f"**Kontrak:** {raw_contract}")
+    st.info(f"**Internet:** {raw_internet}")
+    st.info(f"**Pembayaran:** {raw_payment}")
 
 with col2:
-    st.subheader("Hasil Prediksi")
+    st.subheader("Prediksi")
     if st.button('Mulai Prediksi'):
         try:
             # A. Scaling
@@ -109,14 +114,12 @@ with col2:
             churn_prob = probability[0][1] * 100 # Ambil probabilitas kelas 1 (Churn)
             
             # Tampilkan Hasil dengan Gauge/Persentase
-            st.metric("Probabilitas Churn", f"{churn_prob:.2f}%")
+            st.metric("Risiko Churn", f"{churn_prob:.2f}%")
             
             if prediction[0] == 1:
-                st.error('⚠️ PELANGGAN BERPOTENSI CHURN')
-                st.write("Saran: Tawarkan diskon atau kontrak jangka panjang.")
+                st.error('⚠️ PREDIKSI: BERPOTENSI CHURN')
             else:
-                st.success('✅ PELANGGAN AMAN')
-                st.write("Pelanggan ini cenderung setia.")
+                st.success('✅ PREDIKSI: PELANGGAN AMAN')
                 
         except Exception as e:
             st.error("Terjadi Kesalahan:")
